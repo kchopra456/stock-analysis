@@ -5,6 +5,7 @@ from data_sniffer import DataSniffer as ds
 import operator
 import datetime
 from utils import utility
+from utils import template
 import pandas as pd
 
 
@@ -15,6 +16,7 @@ class SQLParseError(Exception):
 class SqlParser:
     _TICKER = 'tickers'
     _binary_ops = ['lt', 'lte', 'gt', 'gte', 'eq']
+    _ternary_ops = ['between']
 
     def __init__(self, tickers: List[str], columns: List[str]):
         self._tickers = [tick.lower() for tick in tickers]
@@ -23,6 +25,18 @@ class SqlParser:
         self._select = []
         self._from = []
         self._ticker = None
+
+    def _visit_ternary_op(self, clause: Dict):
+        print(list(clause.values()))
+        _operand, _value_gte, _value_lte = list(clause.values())[0]
+
+        if clause.get('between'):
+            # lte
+            result_lte = self._visit_bin_op({'lte': [_operand, _value_lte]})
+            result_gte = self._visit_bin_op({'gte': [_operand, _value_gte]})
+            return utility.index_intersection([result_lte, result_gte])
+        else:
+            raise SQLParseError('Not supported ternary operator used.')
 
     def _visit_bin_op(self, clause: Dict):
         def _raise_sqlerror():
@@ -120,8 +134,11 @@ class SqlParser:
                     _raise_where_error()
                 result_index = self._validate_where_clause(clause['or'])
                 return utility.index_union(result_index)
-            elif len(clause) == 1 and list(clause.keys())[0] in self._binary_ops:
-                return self._visit_bin_op(clause)
+            elif len(clause) == 1:
+                if list(clause.keys())[0] in self._binary_ops:
+                    return self._visit_bin_op(clause)
+                if list(clause.keys())[0] in self._ternary_ops:
+                    return self._visit_ternary_op(clause)
             else:
                 _raise_where_error()
         elif isinstance(clause, list):
@@ -136,6 +153,8 @@ class SqlParser:
         return self._tickers + [self._TICKER]
 
     def _validate_stmt(self, sql: Dict):
+        print(template.query_header.format(sql))
+
         if sql['select']:
             self._validate_select_clause(sql['select'])
         else:
@@ -149,7 +168,13 @@ class SqlParser:
         if sql['where']:
             for _ticker in self._from:
                 self._ticker = _ticker
-                print(self._validate_where_clause(sql['where']))
+                df_index = self._validate_where_clause(sql['where'])
+                self._register_output(df_index)
+        print(template.query_footer)
+
+    def _register_output(self, df_index):
+        print(template.query_output.format(self._ticker))
+        print(ds.download(self._ticker).loc[df_index, self._select])
 
     def parse(self, stmt: str):
         sql = parse(stmt.lower())
@@ -186,6 +211,7 @@ if __name__ == '__main__':
     _columns = ['Open', 'Close', 'High', 'Low', 'Volume']
     _sp = SqlParser(_tickers, _columns)
     # _query = 'select MA(Open) as ma_open from tablename where date between "2019-08-12" and "2020-01-01" and interval="id";'
-    _query = 'select * from tickers where  change(open) >= "10%" and date >= "2000-01-25";'
-    print(_sp.parse(_query))
-    # _sp.des()
+    # _query = 'select open from tickers where  decrease(open) <= 10 and date >= "2000-01-25";'
+    _query = 'select open from tickers where change(open) between "10%" and "15%";'
+    # _query = 'select open from tickers where change(open) >= "10%";'
+    _sp.parse(_query)
