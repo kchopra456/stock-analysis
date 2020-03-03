@@ -18,11 +18,16 @@ __parser.add_argument("--tickers", type=str, nargs='+',
                            " space separated input.")
 __parser.add_argument("-o", type=str, required=False,
                       help="output directly to unload generated files.")
+__parser.add_argument("--data", type=str, required=False, action='append',
+                      nargs=4,
+                      help="to compare stock value with external data source "
+                           "`identifier` `path` `index` `column`")
 __parser.add_argument('-v', '--verbose', dest='verbose',
                       action='store_true')
 
 __TICKERS = ['MSFT', 'GOOGL', "AMZN", 'TSLA', 'BABA', 'AAPL']
 __output_dir = './.output'
+
 
 # logging.basicConfig(level=logging.INFO)
 
@@ -44,7 +49,7 @@ class Stocky:
         else:
             os.mkdir(self._outdir)
 
-    def process_sql(self, verbose):
+    def process_sql(self, verbose, compare_data: List[List[str]]):
         parser = sp.SqlParser(tickers=self._tickers,
                               columns=self._columns, verbose=verbose)
         result = parser.parse(self._sql)
@@ -52,12 +57,14 @@ class Stocky:
         for ticker, data in result.items():
             print(template.query_header.format(ticker))
 
-            self._register_filter_output(data[0], ticker, _verbose,)
+            self._register_filter_output(data[0], ticker, _verbose, )
             self._register_last_high(data)
             self._register_gdp_compare(data, ticker)
+            for external_spec in compare_data:
+                self._register_ext_compare(data, ticker, external_spec)
             print(template.query_footer)
 
-    def _register_filter_output(self, df: pd.DataFrame, ticker,  verbose):
+    def _register_filter_output(self, df: pd.DataFrame, ticker, verbose):
         if verbose:
             print(template.query_section.format('SQL Result'))
             print(df)
@@ -86,6 +93,23 @@ class Stocky:
                 f'Stock growth is slower than {country}\'s GDP:'
                 f'\nSTOCK: {stock}\nGDP: {gdp}')
 
+    @classmethod
+    def _register_ext_compare(cls, data, ticker, external_spec):
+        print(template.query_section.format(
+            f'Compare Stock Rise vs {external_spec[0]}.'))
+        stock, ext, identifier = crunch.compare_external_source(df_org=data[1],
+                                                                ticker=ticker,
+                                                                external_spec=external_spec)
+
+        if stock > ext:
+            print(
+                f'Stock growth is faster than {identifier}:'
+                f'\nSTOCK: {stock}\n{identifier}: {ext}')
+        else:
+            print(
+                f'Stock growth is slower than {identifier}'
+                f'\nSTOCK: {stock}\n{identifier}: {ext}')
+
 
 if __name__ == '__main__':
     _args = __parser.parse_args()
@@ -94,11 +118,12 @@ if __name__ == '__main__':
     _tickers = __TICKERS
     if _args.tickers:
         _tickers = _args.tickers
-
+    _external_sources = []
+    if _args.data:
+        _external_sources = _args.data
     _outputdir = __output_dir
     if _args.o:
         _outputdir = _args.o
     _verbose = _args.verbose
-
     _stocky = Stocky(_tickers, _sql, _outputdir)
-    _stocky.process_sql(verbose=_verbose)
+    _stocky.process_sql(verbose=_verbose, compare_data=_external_sources)

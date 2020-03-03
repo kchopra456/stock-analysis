@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import Optional, Union
+from typing import Optional, Union, List
 import datetime
 import pycountry
 import logging
@@ -47,12 +47,14 @@ class Cruncher:
         return gdp, id
 
     @classmethod
+    def _increase_avg(cls, df: pd.DataFrame, window=10):
+        _df = df.shift(-1)
+        _df = (_df - df) / df
+        return _df[-1 * window:].mean()
+
+    @classmethod
     def compare_stock_gdp(cls, df_org: pd.DataFrame, ticker: str, *args,
                           **kwargs):
-        def _increase_avg(df: pd.DataFrame, window=10):
-            _df = df.shift(-1)
-            _df = (_df - df) / df
-            return _df[-1 * window:].mean()
 
         logging.info('Waiting for country code...')
         # from data_sniffer import DataSniffer as ds
@@ -64,10 +66,48 @@ class Cruncher:
                                            country)
         _df = cls.stock_data_yearly(df_org)
 
-        _stock = _increase_avg(_df['close'])
-        _gdp = _increase_avg(gdp[gdp_id])
+        _stock = cls._increase_avg(_df['close'])
+        _gdp = cls._increase_avg(gdp[gdp_id])
 
         return _stock, _gdp, country
+
+    @classmethod
+    def check_annual_index(cls, df: pd.DataFrame):
+        _name = df.index.name
+        df = df.reset_index()
+        _df = df[_name].shift(1)
+        _df = (df[_name] - _df)[1:]
+        if ((_df == datetime.timedelta(days=365)) | (
+                _df == datetime.timedelta(days=366))).all():
+            return True
+        return False
+
+    @classmethod
+    def compare_external_source(cls, df_org: pd.DataFrame, ticker: str,
+                                external_spec: List[List[str]], *args,
+                                **kwargs):
+        try:
+            ex_df = pd.read_csv(external_spec[1], index_col=external_spec[2],
+                                parse_dates=True)
+        except ValueError:
+            raise ImportError(
+                f'external source load missing columns: {external_spec[2]}')
+        if not ex_df.index.is_monotonic:
+            raise ImportError('<Dataframe> index must be monotonic increase.')
+        if ex_df.index.is_monotonic_decreasing:
+            ex_df.index = ex_df.reindex(index=ex_df.index[::-1])
+
+        if cls.check_annual_index(ex_df):
+            df_org = cls.stock_data_yearly(df_org)
+
+        _stock = cls._increase_avg(df_org['close'])
+        try:
+            _external = cls._increase_avg(ex_df[external_spec[3]])
+        except KeyError:
+            raise ImportError(
+                f'External file import do not include column: {external_spec[3]}')
+
+        return _stock, _external, external_spec[0]
 
 
 if __name__ == '__main__':

@@ -18,6 +18,14 @@ Framework to process Stock Data allowing SQL.
 - **--tickers** : `optional`
     - provide ticker/s to collect stock data.
     - example: *... --tickers "MSFT" "GOOGL" ...*
+- **--data**: `optional`
+    - includes 4 parts 
+        - `identifier`: to represent result on console
+        - `path`: path to the source file. (*map with docker command*)
+        - `index`: colname to use as the index.
+        - `column`: column name to use to compare to stock growth.
+    - allowed multiple use, specify multiple source each with a --data flag.
+    - example: *... --data Population ./assets/us-population.csv year SP.POP.TOTL ...*
 - **-o**: `optional`
     - path to the directory to redirect all generated files.
     - default: ./.output
