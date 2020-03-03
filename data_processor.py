@@ -8,7 +8,7 @@ class Processor:
 
     @classmethod
     def data_operations(cls):
-        return [cls.change.__name__, cls.increase.__name__, cls.decrease.__name__]
+        return [cls.change.__name__, cls.increase.__name__, cls.decrease.__name__, cls.moving_average.__name__]
 
     @classmethod
     def _apply_operation(cls, df: pd.Series, op: operator, value):
@@ -66,6 +66,11 @@ class Processor:
         return _df[op(_df, _value)]
 
     @classmethod
+    def moving_average(cls, df: pd.DataFrame, col: str, *args, **kwargs):
+        _df = df[col].rolling(window=5).mean()
+        return _df
+
+    @classmethod
     def execute(cls, ticker: str, operatr: operator, operand: str, value: Union[int, str, float], func: Optional[str]):
         def _define_value_ratio(input):
             if isinstance(input, int) or isinstance(input, float):
@@ -84,6 +89,8 @@ class Processor:
             elif func == cls.increase.__name__:
                 return cls.increase(df=df, col=operand, op=operatr, value=value, ratio=ratio)
             elif func == cls.decrease.__name__:
+                return cls.decrease(df=df, col=operand, op=operatr, value=value, ratio=ratio)
+            elif func == cls.moving_average.__name__:
                 return cls.decrease(df=df, col=operand, op=operatr, value=value, ratio=ratio)
             else:
                 raise AttributeError(f'function: {func} not defined on class: {cls.__name__}')

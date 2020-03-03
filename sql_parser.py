@@ -7,6 +7,7 @@ import datetime
 from utils import utility
 from utils import template
 import pandas as pd
+import plotly.graph_objects as go
 
 
 class SQLParseError(Exception):
@@ -18,16 +19,16 @@ class SqlParser:
     _binary_ops = ['lt', 'lte', 'gt', 'gte', 'eq']
     _ternary_ops = ['between']
 
-    def __init__(self, tickers: List[str], columns: List[str]):
+    def __init__(self, tickers: List[str], columns: List[str], verbose=False):
         self._tickers = [tick.lower() for tick in tickers]
         self._columns = [col.lower() for col in columns]
 
         self._select = []
         self._from = []
         self._ticker = None
+        self._verbose = verbose
 
     def _visit_ternary_op(self, clause: Dict):
-        print(list(clause.values()))
         _operand, _value_gte, _value_lte = list(clause.values())[0]
 
         if clause.get('between'):
@@ -156,33 +157,47 @@ class SqlParser:
         return self._tickers + [self._TICKER]
 
     def _validate_stmt(self, sql: Dict):
-        if sql['select']:
+        if sql.get('select'):
             self._validate_select_clause(sql['select'])
         else:
             raise SQLParseError('query must include clause <select>...')
 
-        if sql['from']:
+        if sql.get('from'):
             _from = sql['from']
             self._validate_from_clause(_from)
         else:
             raise SQLParseError('query must include clause <from>...')
-        if sql['where']:
-            for _ticker in self._from:
-                self._ticker = _ticker
+        if self._verbose:
+            print(template.query_header.format(sql))
+
+        result = {}
+        for _ticker in self._from:
+            self._ticker = _ticker.upper()r
+            df_index = ds.download(self._ticker).index
+            if sql.get('where'):
                 df_index = self._validate_where_clause(sql['where'])
-                self._register_output(df_index)
-        print(template.query_footer)
+            result.update({self._ticker: self._register_output(df_index)})
+
+        if self._verbose:
+            print(template.query_footer)
+
+        return result
 
     def _register_output(self, df_index):
-        print(template.query_output.format(self._ticker))
-        print(ds.download(self._ticker).loc[df_index, self._select])
+        result = ds.download(self._ticker).loc[df_index, self._select]
+        if self._verbose:
+            print(template.query_output.format(self._ticker.upper()))
+            print(result)
+        return result
+        from utils import graph
+        # fig = go.Figure(graph.candlestick_trace(ds.download(self._ticker).loc[df_index, self._select]))
+        # fig.show()
 
     def parse(self, stmt: str):
         sql = parse(stmt.lower())
 
         # Validate the statemet
-        self._validate_stmt(sql)
-        return sql
+        return self._validate_stmt(sql)
 
     def execute_query(self, operatr: operator, operand, value, func):
         if self._ticker is None:
@@ -208,11 +223,12 @@ class SqlParser:
 
 
 if __name__ == '__main__':
-    _tickers = ['MSFT']
+    _tickers = ['MSFT', 'Googl']
     _columns = ['Open', 'Close', 'High', 'Low', 'Volume']
     _sp = SqlParser(_tickers, _columns)
     # _query = 'select MA(Open) as ma_open from tablename where date between "2019-08-12" and "2020-01-01" and interval="id";'
     # _query = 'select open from tickers where  decrease(open) <= 10 and date >= "2000-01-25";'
-    _query = 'select open, close from tickers where change(open) between "10%" and "15%";'
+    _query = 'select * from tickers;'
     # _query = 'select open from tickers where change(open) >= "10%";'
-    _sp.parse(_query)
+    result = _sp.parse(_query)
+    print(result)
