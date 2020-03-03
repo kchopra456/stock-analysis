@@ -1,13 +1,13 @@
 # Stock-Analysis
 Framework to process Stock Data allowing SQL.
 
-##RUN
+## RUN
 - Execute `app.py` file with args.
 - Generated files are directed to output directory. (*refer args*)
 - This modue runs inside docker container, to build the image execute [`build.sh`](build.sh).
 - refer [run.sh](run.sh) for docker command to execute module.
 
-### Generated files
+### Generated Files
 - **csv**: data tables for tickers filtered using sql.
  
 ### command-line parameters
