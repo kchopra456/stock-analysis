@@ -1,5 +1,8 @@
 import plotly.graph_objects as go
 import pandas as pd
+import dash_table
+from typing import List
+
 
 def candlestick_trace(df):
     return go.Candlestick(
@@ -20,3 +23,14 @@ def line_trace(df: pd.DataFrame):
         x=df.index, y=df["close"], mode="lines", showlegend=False, name="line"
     )
     return trace
+
+
+def data_table(df: pd.DataFrame):
+    return go.Figure(data=[go.Table(
+    header=dict(values=list(df.columns),
+                fill_color='paleturquoise',
+                align='left'),
+    cells=dict(values=[df[col] for col in df.columns],
+               fill_color='lavender',
+               align='left'))
+])

@@ -172,7 +172,7 @@ class SqlParser:
 
         result = {}
         for _ticker in self._from:
-            self._ticker = _ticker.upper()r
+            self._ticker = _ticker.upper()
             df_index = ds.download(self._ticker).index
             if sql.get('where'):
                 df_index = self._validate_where_clause(sql['where'])
@@ -188,10 +188,12 @@ class SqlParser:
         if self._verbose:
             print(template.query_output.format(self._ticker.upper()))
             print(result)
-        return result
         from utils import graph
+        import plotly.offline as py
         # fig = go.Figure(graph.candlestick_trace(ds.download(self._ticker).loc[df_index, self._select]))
+        # fig = go.Figure(graph.data_table(ds.download(self._ticker).loc[df_index, self._select]))
         # fig.show()
+        return result
 
     def parse(self, stmt: str):
         sql = parse(stmt.lower())
@@ -225,10 +227,10 @@ class SqlParser:
 if __name__ == '__main__':
     _tickers = ['MSFT', 'Googl']
     _columns = ['Open', 'Close', 'High', 'Low', 'Volume']
-    _sp = SqlParser(_tickers, _columns)
+    _sp = SqlParser(_tickers, _columns, verbose=True)
     # _query = 'select MA(Open) as ma_open from tablename where date between "2019-08-12" and "2020-01-01" and interval="id";'
     # _query = 'select open from tickers where  decrease(open) <= 10 and date >= "2000-01-25";'
-    _query = 'select * from tickers;'
+    _query = 'select open from tickers where date between "2020-01-01" and "2020-03-01";'
     # _query = 'select open from tickers where change(open) >= "10%";'
-    result = _sp.parse(_query)
-    print(result)
+    _result = _sp.parse(_query)
+    # print(_result)
