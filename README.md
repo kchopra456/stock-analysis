@@ -32,6 +32,15 @@ Framework to process Stock Data allowing SQL.
 - **--verbose/-v**: `optional`
     - to print query selected table to console.
     - example: *... --verbose ...*
+    
+### Examples
+```shell script
+python3 app.py \
+--sql "SELECT * FROM TICKERS WHERE change(open) > \"15%\";" \
+--tickers MSFT GOOGL \
+-o ./.output \
+--data Population ./assets/us-population.csv year SP.POP.TOTL
+``` 
 
 ## SQL Formatting
 - This module can process `SQL` string to fetch conditional stock data.
