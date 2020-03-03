@@ -1,0 +1,1 @@
+docker build -f build/Dockerfile -t stock-analysis:latest .

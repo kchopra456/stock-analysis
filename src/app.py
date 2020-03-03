@@ -4,11 +4,11 @@ import sql_parser as sp
 
 __parser = argparse.ArgumentParser()
 __parser.add_argument("--sql", type=str,
-                    required=True, help="SQL used to gather stock data for ticker/s")
+                      required=True, help="SQL used to gather stock data for ticker/s")
 __parser.add_argument("--tickers", type=str, nargs='+',
-                    required=False, help="ticker/s to track stock data for/ space separated input.")
+                      required=False, help="ticker/s to track stock data for/ space separated input.")
 __parser.add_argument("--graph", type=str, nargs='+',
-                    required=False, help="Graph to generate for collected data.")
+                      required=False, help="Graph to generate for collected data.")
 
 __TICKERS = ['MSFT', 'GOOGL', "AMZN", 'TSLA', 'BABA', 'AAPL']
 

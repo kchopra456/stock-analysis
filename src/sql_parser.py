@@ -4,10 +4,8 @@ from data_processor import Processor as dp
 from data_sniffer import DataSniffer as ds
 import operator
 import datetime
-from utils import utility
-from utils import template
+from utils import template, utility
 import pandas as pd
-import plotly.graph_objects as go
 
 
 class SQLParseError(Exception):
@@ -188,8 +186,6 @@ class SqlParser:
         if self._verbose:
             print(template.query_output.format(self._ticker.upper()))
             print(result)
-        from utils import graph
-        import plotly.offline as py
         # fig = go.Figure(graph.candlestick_trace(ds.download(self._ticker).loc[df_index, self._select]))
         # fig = go.Figure(graph.data_table(ds.download(self._ticker).loc[df_index, self._select]))
         # fig.show()
