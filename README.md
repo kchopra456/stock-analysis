@@ -3,8 +3,12 @@ Framework to process Stock Data allowing SQL.
 
 ##RUN
 - Execute `app.py` file with args.
+- Generated files are directed to output directory. (*refer args*)
 - This modue runs inside docker container, to build the image execute [`build.sh`](build.sh).
 - refer [run.sh](run.sh) for docker command to execute module.
+
+### Generated files
+- **csv**: data tables for tickers filtered using sql.
  
 ### command-line parameters
 - **--sql**: `required`
@@ -14,6 +18,9 @@ Framework to process Stock Data allowing SQL.
 - **--tickers** : `optional`
     - provide ticker/s to collect stock data.
     - example: *... --tickers "MSFT" "GOOGL" ...*
+- **-o**: `optional`
+    - path to the directory to redirect all generated files.
+    - default: ./.output
 - **--verbose/-v**: `optional`
     - to print query selected table to console.
     - example: *... --verbose ...*
