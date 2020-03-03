@@ -165,31 +165,18 @@ class SqlParser:
             self._validate_from_clause(_from)
         else:
             raise SQLParseError('query must include clause <from>...')
-        if self._verbose:
-            print(template.query_header.format(sql))
-
         result = {}
         for _ticker in self._from:
             self._ticker = _ticker.upper()
             df_index = ds.download(self._ticker).index
             if sql.get('where'):
                 df_index = self._validate_where_clause(sql['where'])
-            result.update({self._ticker: self._register_output(df_index)})
-
-        if self._verbose:
-            print(template.query_footer)
+            _data_org = ds.download(self._ticker)
+            _data_filter = ds.download(self._ticker).loc[df_index, self._select]
+            result.update({self._ticker: (_data_filter, _data_org)})
 
         return result
 
-    def _register_output(self, df_index):
-        result = ds.download(self._ticker).loc[df_index, self._select]
-        if self._verbose:
-            print(template.query_output.format(self._ticker.upper()))
-            print(result)
-        # fig = go.Figure(graph.candlestick_trace(ds.download(self._ticker).loc[df_index, self._select]))
-        # fig = go.Figure(graph.data_table(ds.download(self._ticker).loc[df_index, self._select]))
-        # fig.show()
-        return result
 
     def parse(self, stmt: str):
         sql = parse(stmt.lower())

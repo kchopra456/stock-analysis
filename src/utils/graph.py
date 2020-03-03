@@ -18,9 +18,9 @@ def candlestick_trace(df):
     )
 
 
-def line_trace(df: pd.DataFrame):
+def line_trace(df: pd.DataFrame, col: str):
     trace = go.Scatter(
-        x=df.index, y=df["close"], mode="lines", showlegend=False, name="line"
+        x=df.index, y=df[col], mode="lines", showlegend=False, name="line"
     )
     return trace
 

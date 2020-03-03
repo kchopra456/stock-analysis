@@ -1,3 +1,3 @@
-query_header = '*'*100 + '\nQuery registered (verbose): {}\n'
-query_output = '#'*40 + '\nTicker: {}'
+query_header = '*'*100 + '\nStock Analysis ticker: {}\n'
+query_section = '#'*40 + '\nSection: {}'
 query_footer = '*'*100

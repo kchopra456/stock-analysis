@@ -8,6 +8,10 @@ RUN python3 -m pip install plotly==3.10.0
 
 RUN python3 -m pip install moz_sql_parser
 
+RUN python3 -m pip install pycountry
+
+RUN python3 -m pip install pandas_datareader
+
 #RUN python3 -m pip install dash==1.0.0
 #
 #RUN python3 -m pip install gunicorn==19.9.0
