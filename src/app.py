@@ -1,7 +1,7 @@
 import argparse
 from typing import List
 import sql_parser as sp
-import template
+from utils import template
 from data_cruncher import Cruncher as crunch
 import logging
 
