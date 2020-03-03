@@ -51,6 +51,12 @@ Framework to process Stock Data allowing SQL.
     - operation can be only performed on columns available in the stock data.
     - also allow `data processing` steps to provide better filtering
         - refer [`data_processor.py`](src/data_processor.py) for details.
+
+#### Data Processing functions
+- change
+- increase
+- decrease
+
 #### Examples
 - Collect all columns from max period for all tickers.
     - SELECT * FROM TICKERS;
