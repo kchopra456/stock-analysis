@@ -4,6 +4,9 @@ import sql_parser as sp
 from utils import template
 from data_cruncher import Cruncher as crunch
 import logging
+import os
+import datetime
+import pandas as pd
 
 __parser = argparse.ArgumentParser()
 __parser.add_argument("--sql", type=str,
@@ -13,20 +16,33 @@ __parser.add_argument("--tickers", type=str, nargs='+',
                       required=False,
                       help="ticker/s to track stock data for/"
                            " space separated input.")
+__parser.add_argument("-o", type=str, required=False,
+                      help="output directly to unload generated files.")
 __parser.add_argument('-v', '--verbose', dest='verbose',
                       action='store_true')
 
 __TICKERS = ['MSFT', 'GOOGL', "AMZN", 'TSLA', 'BABA', 'AAPL']
-
+__output_dir = './.output'
 
 # logging.basicConfig(level=logging.INFO)
 
 class Stocky:
     _columns = ['Open', 'Close', 'High', 'Low', 'Volume']
 
-    def __init__(self, tickers: List[str], sql: str):
+    def __init__(self, tickers: List[str], sql: str, output_dir: str):
         self._tickers = tickers
         self._sql = sql
+        self._outdir = output_dir
+        self._ts = datetime.datetime.now()
+        self.configure()
+
+    def configure(self):
+        if os.path.exists(self._outdir):
+            if not os.path.isdir(self._outdir):
+                raise AttributeError('path provided for'
+                                     ' output must be a directory.')
+        else:
+            os.mkdir(self._outdir)
 
     def process_sql(self, verbose):
         parser = sp.SqlParser(tickers=self._tickers,
@@ -35,16 +51,18 @@ class Stocky:
 
         for ticker, data in result.items():
             print(template.query_header.format(ticker))
-            if _verbose:
-                self._register_filter_output(data[0])
+
+            self._register_filter_output(data[0], ticker, _verbose,)
             self._register_last_high(data)
             self._register_gdp_compare(data, ticker)
             print(template.query_footer)
 
-    @classmethod
-    def _register_filter_output(cls, df):
-        print(template.query_section.format('SQL Result'))
-        print(df)
+    def _register_filter_output(self, df: pd.DataFrame, ticker,  verbose):
+        if verbose:
+            print(template.query_section.format('SQL Result'))
+            print(df)
+        _csv_path = f'{self._outdir}/{ticker}-{self._ts}.csv'
+        df.to_csv(_csv_path)
 
     @classmethod
     def _register_last_high(cls, data, window=10):
@@ -76,7 +94,11 @@ if __name__ == '__main__':
     _tickers = __TICKERS
     if _args.tickers:
         _tickers = _args.tickers
+
+    _outputdir = __output_dir
+    if _args.o:
+        _outputdir = _args.o
     _verbose = _args.verbose
 
-    _stocky = Stocky(_tickers, _sql)
+    _stocky = Stocky(_tickers, _sql, _outputdir)
     _stocky.process_sql(verbose=_verbose)
