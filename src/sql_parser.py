@@ -44,12 +44,14 @@ class SqlParser:
         def _validate_operand(op):
             if isinstance(op, str):
                 if op not in self._select + ['date']:
-                    raise SQLParseError(f'<operand>: {op} must be present in <select>... or  use <select> *')
+                    raise SQLParseError(f'<operand>: {op} must be present'
+                                        f' in <select>... or  use <select> *')
                 return op, None
             elif isinstance(op, dict):
                 _func, _op = list(op.keys())[0], list(op.values())[0]
                 if _func not in dp.data_operations():
-                    raise SQLParseError(f'<function>: {_func} not defined over <operand>: {_op}')
+                    raise SQLParseError(
+                        f'<function>: {_func} not defined over <operand>: {_op}')
                 return _op, _func
             else:
                 _raise_sqlerror()
@@ -70,13 +72,15 @@ class SqlParser:
         else:
             raise SQLParseError('Invalid operation in <where> clause.')
         _op, _func = _validate_operand(_operand[0])
-        return self.execute_query(operatr=_operatr, operand=_op, value=_operand[1], func=_func)
+        return self.execute_query(operatr=_operatr, operand=_op,
+                                  value=_operand[1], func=_func)
 
     def _validate_select_clause(self, clause):
         _valid_select = self._columns + ['*']
 
         def _raise_select_error():
-            raise SQLParseError(f'<select> must include valid columns: {_valid_select}')
+            raise SQLParseError(
+                f'<select> must include valid columns: {_valid_select}')
 
         if isinstance(clause, str):
             if clause == '*':
@@ -95,7 +99,8 @@ class SqlParser:
 
     def _validate_from_clause(self, clause):
         def _raise_from_error():
-            raise SQLParseError(f'query only valid on tickers: {self._valid_tables()}')
+            raise SQLParseError(
+                f'query only valid on tickers: {self._valid_tables()}')
 
         if isinstance(clause, str):
             if clause == self._TICKER:
@@ -117,7 +122,8 @@ class SqlParser:
                 self._validate_from_clause(_clause)
             _from = [f[0] for f in self._from]
             if self._TICKER in _from:
-                raise SQLParseError('<tickers> keyword can not be used with tickers list.')
+                raise SQLParseError(
+                    '<tickers> keyword can not be used with tickers list.')
         else:
             _raise_from_error()
 
@@ -177,7 +183,6 @@ class SqlParser:
 
         return result
 
-
     def parse(self, stmt: str):
         sql = parse(stmt.lower())
 
@@ -189,7 +194,8 @@ class SqlParser:
             raise AttributeError('Ticker value not set.')
         if func:
             return dp.execute(self._ticker, operatr, operand, value, func).index
-            # print(dp.execute(ticker, operatr, operand, value, func)[self._select])
+            # print(dp.execute(ticker, operatr, operand,
+            # value, func)[self._select])
         else:
             df = ds.download(self._ticker)
             if operand == 'date':
@@ -211,9 +217,12 @@ if __name__ == '__main__':
     _tickers = ['MSFT', 'Googl']
     _columns = ['Open', 'Close', 'High', 'Low', 'Volume']
     _sp = SqlParser(_tickers, _columns, verbose=True)
-    # _query = 'select MA(Open) as ma_open from tablename where date between "2019-08-12" and "2020-01-01" and interval="id";'
-    # _query = 'select open from tickers where  decrease(open) <= 10 and date >= "2000-01-25";'
-    _query = 'select open from tickers where date between "2020-01-01" and "2020-03-01";'
+    # _query = 'select MA(Open) as ma_open from tablename
+    # where date between "2019-08-12" and "2020-01-01" and interval="id";'
+    # _query = 'select open from tickers where  decrease(ope
+    # n) <= 10 and date >= "2000-01-25";'
+    _query = 'select open from tickers where ' \
+             'date between "2020-01-01" and "2020-03-01";'
     # _query = 'select open from tickers where change(open) >= "10%";'
     _result = _sp.parse(_query)
     # print(_result)

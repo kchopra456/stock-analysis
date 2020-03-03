@@ -7,10 +7,14 @@ import logging
 
 __parser = argparse.ArgumentParser()
 __parser.add_argument("--sql", type=str,
-                      required=True, help="SQL used to gather stock data for ticker/s")
+                      required=True,
+                      help="SQL used to gather stock data for ticker/s")
 __parser.add_argument("--tickers", type=str, nargs='+',
-                      required=False, help="ticker/s to track stock data for/ space separated input.")
-__parser.add_argument('-v', '--verbose', dest='verbose', action='store_true')
+                      required=False,
+                      help="ticker/s to track stock data for/"
+                           " space separated input.")
+__parser.add_argument('-v', '--verbose', dest='verbose',
+                      action='store_true')
 
 __TICKERS = ['MSFT', 'GOOGL', "AMZN", 'TSLA', 'BABA', 'AAPL']
 
@@ -25,7 +29,8 @@ class Stocky:
         self._sql = sql
 
     def process_sql(self, verbose):
-        parser = sp.SqlParser(tickers=self._tickers, columns=self._columns, verbose=verbose)
+        parser = sp.SqlParser(tickers=self._tickers,
+                              columns=self._columns, verbose=verbose)
         result = parser.parse(self._sql)
 
         for ticker, data in result.items():
@@ -43,18 +48,25 @@ class Stocky:
 
     @classmethod
     def _register_last_high(cls, data, window=10):
-        print(template.query_section.format(f'Last High Window {window}'))
+        print(template.query_section.format(
+            f'Last High Window {window}'))
         _date = crunch.high_window(df_org=data[1], window=window)
 
     @classmethod
     def _register_gdp_compare(cls, data, ticker):
-        print(template.query_section.format(f'Compare Stock Rise vs Country GDP growth.'))
-        stock, gdp, country = crunch.compare_stock_gdp(df_org=data[1], ticker=ticker)
+        print(template.query_section.format(
+            f'Compare Stock Rise vs Country GDP growth.'))
+        stock, gdp, country = crunch.compare_stock_gdp(df_org=data[1],
+                                                       ticker=ticker)
 
         if stock > gdp:
-            print(f'Stock growth is faster than {country}\'s GDP:\nSTOCK: {stock}\nGDP: {gdp}')
+            print(
+                f'Stock growth is faster than {country}\'s GDP:'
+                f'\nSTOCK: {stock}\nGDP: {gdp}')
         else:
-            print(f'Stock growth is slower than {country}\'s GDP:\nSTOCK: {stock}\nGDP: {gdp}')
+            print(
+                f'Stock growth is slower than {country}\'s GDP:'
+                f'\nSTOCK: {stock}\nGDP: {gdp}')
 
 
 if __name__ == '__main__':

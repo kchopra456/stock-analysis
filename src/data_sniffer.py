@@ -23,7 +23,9 @@ class DataSniffer:
         cls._storage.update({ticker: df})
 
     @classmethod
-    def download(cls, ticker: str, start: Union[datetime.datetime, datetime.date] = None, end: Union[datetime.datetime, datetime.date] = None):
+    def download(cls, ticker: str,
+                 start: Union[datetime.datetime, datetime.date] = None,
+                 end: Union[datetime.datetime, datetime.date] = None):
         df = cls._collect_cache(ticker)
         if not df.empty:
             return df

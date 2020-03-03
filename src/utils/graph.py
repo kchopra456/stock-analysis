@@ -27,10 +27,10 @@ def line_trace(df: pd.DataFrame, col: str):
 
 def data_table(df: pd.DataFrame):
     return go.Figure(data=[go.Table(
-    header=dict(values=list(df.columns),
-                fill_color='paleturquoise',
-                align='left'),
-    cells=dict(values=[df[col] for col in df.columns],
-               fill_color='lavender',
-               align='left'))
-])
+        header=dict(values=list(df.columns),
+                    fill_color='paleturquoise',
+                    align='left'),
+        cells=dict(values=[df[col] for col in df.columns],
+                   fill_color='lavender',
+                   align='left'))
+    ])
