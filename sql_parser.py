@@ -88,6 +88,9 @@ class SqlParser:
                 _raise_select_error()
         elif isinstance(clause, dict):
             self._validate_select_clause(clause.get('value'))
+        elif isinstance(clause, list):
+            for _select in clause:
+                self._validate_select_clause(_select)
         else:
             _raise_select_error()
 
@@ -153,8 +156,6 @@ class SqlParser:
         return self._tickers + [self._TICKER]
 
     def _validate_stmt(self, sql: Dict):
-        print(template.query_header.format(sql))
-
         if sql['select']:
             self._validate_select_clause(sql['select'])
         else:
@@ -207,11 +208,11 @@ class SqlParser:
 
 
 if __name__ == '__main__':
-    _tickers = ['MSFT', 'Googl']
+    _tickers = ['MSFT']
     _columns = ['Open', 'Close', 'High', 'Low', 'Volume']
     _sp = SqlParser(_tickers, _columns)
     # _query = 'select MA(Open) as ma_open from tablename where date between "2019-08-12" and "2020-01-01" and interval="id";'
     # _query = 'select open from tickers where  decrease(open) <= 10 and date >= "2000-01-25";'
-    _query = 'select open from tickers where change(open) between "10%" and "15%";'
+    _query = 'select open, close from tickers where change(open) between "10%" and "15%";'
     # _query = 'select open from tickers where change(open) >= "10%";'
     _sp.parse(_query)
